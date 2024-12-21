@@ -1,10 +1,10 @@
 #!/bin/bash
 set -e
-export NEAR_ENV="mainnet"
+export NEAR_ENV="testnet"
 
-OWNER_ID="meta-pool-dao.near"
-OPERATOR_ID="operator.mpdao-vote.near"
-CONTRACT_ADDRESS="meta-pool-airdrop-gradual-release.near"
+OWNER_ID="mpdao-vote.testnet"
+OPERATOR_ID="operator.mpdao-vote.testnet"
+CONTRACT_ADDRESS="meta-pool-airdrop-gradual-release.testnet"
 CONTRACT_WASM="res/gradual_release_claim_contract.wasm"
 
 echo $NEAR_ENV $(date)

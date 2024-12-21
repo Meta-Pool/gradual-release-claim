@@ -38,16 +38,35 @@ pub struct AirdropJSON {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(crate = "near_sdk::serde")]
 pub struct ClaimInfoJSON {
+    /// true
     pub is_active: bool,
+
+    /// 0..n
     pub airdrop_index: u16,
+
+    /// title for the airdrop, e.g. "Meme Grant Round #9"
     pub airdrop_title: String,
+
+    /// token to be claimed (contract)
     pub token_contract: AccountId,
     pub token_symbol: String,
+    /// to display the amount correctly
     pub token_decimals: u8,
+
+    /// total airdropped for this user
     pub assigned_tokens: U128,
+
+    /// amount already claimed
     pub claimed_tokens: U128,
+
+    /// available to claim NOW. this amount goes from zero to assigned_tokens during the gradual release
+    /// this amount has subtracted already the "claimed_tokens" amount, and so, this amount will be reset
+    /// to zero after a claim, and will increase on each minute boundary until release_end_ms
     pub available_tokens_now: U128,
+
+    /// start of the gradual release period
     pub release_start_ms: U64,
+    /// end of the gradual release period
     pub release_end_ms: U64,
 }
 
