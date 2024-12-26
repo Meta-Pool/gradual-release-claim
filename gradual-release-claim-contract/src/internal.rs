@@ -45,7 +45,7 @@ impl GradualReleaseContract {
         &mut self,
         airdrop_index: u16,
         total_amount: u128,
-        claims_array: &Vec<(AccountId, String)>,
+        claims_array: Vec<(String, String)>,
     ) {
         let airdrop = &mut self.airdrops[airdrop_index as usize];
         assert!(
@@ -55,10 +55,10 @@ impl GradualReleaseContract {
         );
         let mut total_distributed = 0;
         for item in claims_array {
-            let account_id = &item.0;
+            let account_id = &AccountId::new_unchecked(item.0);
             let claims = &mut self
                 .available_claims
-                .get(&account_id)
+                .get(account_id)
                 .unwrap_or(VecUserClaims::new());
 
             if claims

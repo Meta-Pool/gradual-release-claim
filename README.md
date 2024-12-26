@@ -14,7 +14,7 @@ The Gradual Release Claim Contract allows for the gradual release of tokens to a
 
 ## Deployed contracts
 
-    `testnet: meta-pool-airdrop-gradual-release.testnet`
+    testnet: `meta-pool-airdrop-gradual-release.testnet`
 
 ## Usage (Front end)
 

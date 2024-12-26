@@ -164,11 +164,11 @@ impl GradualReleaseContract {
         &mut self,
         airdrop_index: u16,
         total_amount: U128,
-        data: Vec<(AccountId, String)>,
+        data: Vec<(String, String)>,
     ) {
         assert_one_yocto();
         self.assert_operator();
-        self.internal_create_claims(airdrop_index as u16, total_amount.0, &data);
+        self.internal_create_claims(airdrop_index as u16, total_amount.0, data);
     }
 
     // after enough tokens have been transferred to the contract
