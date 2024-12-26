@@ -50,6 +50,6 @@ impl UserClaimInfo {
     }
 
     pub fn is_active(&self) -> bool {
-        self.assigned_tokens > 0 && self.assigned_tokens < self.claimed_tokens
+        self.assigned_tokens > 0 && self.claimed_tokens < self.assigned_tokens
     }
 }
