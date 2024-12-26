@@ -5,3 +5,4 @@ __dir=$(dirname "$0")
 set -ex
 near view $CONTRACT_ADDRESS get_contract_info
 near view $CONTRACT_ADDRESS get_airdrops
+near view $CONTRACT_ADDRESS get_user_claims '{"account_id":"'testwallet99.testnet'"}'
