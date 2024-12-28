@@ -28,7 +28,7 @@ impl UserClaimInfo {
     /// - If the current timestamp is after the end of the gradual release period, returns the difference between assigned tokens and claimed tokens.
     /// - If the current timestamp is within the gradual release period, calculates the proportion of tokens that should be unlocked based on the elapsed time and the total period length.
     /// - Returns the difference between the unlocked tokens and the claimed tokens, ensuring it does not return a negative value.
-    pub fn available_now(&self, release_period: &TimestampPeriod) -> u128 {
+    pub fn available_now(&self, release_period: &airdrop::TimestampPeriod) -> u128 {
         let now_ms = get_current_epoch_millis();
         let unlocked_amount = if now_ms < release_period.start_ms {
             0

@@ -49,8 +49,8 @@ impl GradualReleaseContract {
     ) {
         let airdrop = &mut self.airdrops[airdrop_index as usize];
         assert!(
-            !airdrop.enabled,
-            "Airdrop {} is enabled. Can not add more claims",
+            airdrop.status_code == airdrop::status_code::DISABLED,
+            "Airdrop {} is nor disabled. Can not add more claims",
             airdrop_index
         );
         let mut total_distributed = 0;
@@ -110,7 +110,7 @@ impl GradualReleaseContract {
     ) -> u128 {
         let user_claims = &mut self.internal_get_claims_or_panic(account_id);
         let airdrop = &mut self.airdrops[airdrop_index as usize];
-        assert!(airdrop.enabled, "Airdrop {} is not enabled", airdrop_index);
+        assert!(airdrop.is_enabled(), "Airdrop {} is not enabled", airdrop_index);
         let claim = match user_claims
             .iter_mut()
             .find(|i| i.airdrop_index == airdrop_index)

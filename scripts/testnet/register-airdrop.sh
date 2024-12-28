@@ -23,8 +23,8 @@ rm temp.txt
 
 # get the timestamp in milliseconds
 current_timestamp_ms=$(date +%s%3N)
-# add 5 days to the current timestamp
-end_timestamp_ms=$(($current_timestamp_ms + 5*24*60*60*1000))
+# add 24hs to the current timestamp
+end_timestamp_ms=$(($current_timestamp_ms + 27*60*60*1000))
 
 set -ex
 REGISTER_ARGS=$(cat <<EOA

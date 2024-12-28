@@ -13,6 +13,7 @@ use near_sdk::{
 };
 use user_claim_info::UserClaimInfo;
 
+mod airdrop;
 mod constants;
 mod internal;
 mod migrate;
@@ -36,26 +37,6 @@ trait ExtSelf {
     fn enable_airdrop_step_2(&mut self, airdrop_index: u16);
 }
 
-#[derive(BorshDeserialize, BorshSerialize)]
-pub struct TimestampPeriod {
-    start_ms: u64,
-    end_ms: u64,
-}
-
-pub type AirdropIndex = u8;
-
-#[derive(BorshDeserialize, BorshSerialize)]
-pub struct Airdrop {
-    enabled: bool,
-    title: String,
-    token_contract: AccountId,
-    token_symbol: String,
-    token_decimals: u8,
-    release_schedule: TimestampPeriod,
-    total_distributed: u128,
-    total_claimed: u128,
-}
-
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
 // Contract main state
@@ -64,7 +45,7 @@ pub struct GradualReleaseContract {
     pub operator_id: AccountId,
 
     // period is the same for everyone
-    pub airdrops: Vec<Airdrop>,
+    pub airdrops: Vec<airdrop::Airdrop>,
 
     pub available_claims: UnorderedMap<AccountId, Vec<UserClaimInfo>>, // claimable tokens per user
     pub total_in_claims_per_token: UnorderedMap<Token, u128>, // currently unclaimed -- increase on add_claims, decrease on claim
@@ -141,13 +122,13 @@ impl GradualReleaseContract {
         end_timestamp_ms: U64,
         #[callback] metadata: FungibleTokenMetadata,
     ) -> u16 {
-        self.airdrops.push(Airdrop {
-            enabled: false,
+        self.airdrops.push(airdrop::Airdrop {
+            status_code: airdrop::status_code::DISABLED,
             title,
             token_contract,
             token_symbol: metadata.symbol,
             token_decimals: metadata.decimals,
-            release_schedule: TimestampPeriod {
+            release_schedule: airdrop::TimestampPeriod {
                 start_ms: start_timestamp_ms.0,
                 end_ms: end_timestamp_ms.0,
             },
@@ -190,11 +171,6 @@ impl GradualReleaseContract {
         #[callback] contract_balance: U128,
     ) {
         let airdrop = &mut self.airdrops[airdrop_index as usize];
-        assert!(
-            !airdrop.enabled,
-            "ERR: Airdrop {} is already enabled",
-            airdrop_index
-        );
         let token_contract = airdrop.token_contract.clone();
         assert!(
             contract_balance.0 > 0,
@@ -202,7 +178,13 @@ impl GradualReleaseContract {
             env::current_account_id(),
             token_contract
         );
-        let total_in_claims_this_token = self.total_in_claims_per_token.get(&token_contract).unwrap_or(0);
+
+        airdrop.change_status(airdrop::status_code::ENABLED);
+
+        let total_in_claims_this_token = self
+            .total_in_claims_per_token
+            .get(&token_contract)
+            .unwrap_or(0);
         assert!(
             total_in_claims_this_token > 0,
             "ERR: for token {}, total_in_claims is 0",
@@ -215,7 +197,7 @@ impl GradualReleaseContract {
             contract_balance.0,
             total_in_claims_this_token
         );
-        airdrop.enabled = true;
+
         log!(
             "Airdrop index {} enabled for {} with contract_balance {} and total_in_claims {}",
             airdrop_index,
@@ -223,6 +205,18 @@ impl GradualReleaseContract {
             contract_balance.0,
             total_in_claims_this_token
         );
+    }
+
+    // archive an airdrop, no longer appears in get_airdrops()
+    pub fn archive_airdrop(&mut self, airdrop_index: u16) {
+        self.assert_operator();
+        self.airdrops[airdrop_index as usize].change_status(airdrop::status_code::ARCHIVED);
+    }
+
+    // disable an airdrop, can be enabled later
+    pub fn disable_airdrop(&mut self, airdrop_index: u16) {
+        self.assert_operator();
+        self.airdrops[airdrop_index as usize].change_status(airdrop::status_code::DISABLED);
     }
 
     // ------------------------
@@ -239,12 +233,11 @@ impl GradualReleaseContract {
             start_timestamp_ms.0 <= end_timestamp_ms.0,
             "Start timestamp_ms must be before end timestamp_ms"
         );
-        self.airdrops[airdrop_index as usize].release_schedule = TimestampPeriod {
+        self.airdrops[airdrop_index as usize].release_schedule = airdrop::TimestampPeriod {
             start_ms: start_timestamp_ms.0,
             end_ms: end_timestamp_ms.0,
         };
     }
-
 
     // ------------------------------------
     // user claims tokens

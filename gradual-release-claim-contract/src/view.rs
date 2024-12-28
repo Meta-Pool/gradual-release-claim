@@ -23,6 +23,7 @@ pub struct ContractInfoJSON {
 #[serde(crate = "near_sdk::serde")]
 pub struct AirdropJSON {
     pub airdrop_index: u16,
+    pub status_code: u8,
     pub enabled: bool,
     pub title: String,
     pub token_contract: AccountId,
@@ -113,10 +114,11 @@ impl GradualReleaseContract {
         self.airdrops
             .iter()
             .enumerate()
-            .filter(|(_, a)| include_disabled || a.enabled)
+            .filter(|(_, a)| include_disabled || a.is_enabled())
             .map(|(index, a)| AirdropJSON {
                 airdrop_index: index as u16,
-                enabled: a.enabled,
+                enabled: a.is_enabled(),
+                status_code: a.status_code,
                 title: a.title.clone(),
                 token_contract: a.token_contract.clone(),
                 token_symbol: a.token_symbol.clone(),
@@ -165,7 +167,7 @@ impl GradualReleaseContract {
         let mut result = Vec::new();
         for claim in iter {
             let airdrop = &self.airdrops[claim.airdrop_index as usize];
-            if airdrop.enabled && (include_inactive || claim.is_active()) {
+            if airdrop.is_enabled() && (include_inactive || claim.is_active()) {
                 result.push(ClaimInfoJSON {
                     is_active: claim.is_active(),
                     airdrop_index: claim.airdrop_index,
