@@ -27,13 +27,13 @@ impl GradualReleaseContract {
     }
 
     // internal method to get user claims or vec![].
-    pub(crate) fn internal_get_claims(&self, account_id: &AccountId) -> VecUserClaims {
+    pub(crate) fn internal_get_claims(&self, account_id: &String) -> VecUserClaims {
         self.available_claims
-            .get(&account_id)
+            .get(account_id)
             .unwrap_or(VecUserClaims::new())
     }
-    pub(crate) fn internal_get_claims_or_panic(&self, account_id: &AccountId) -> VecUserClaims {
-        match self.available_claims.get(&account_id) {
+    pub(crate) fn internal_get_claims_or_panic(&self, account_id: &String) -> VecUserClaims {
+        match self.available_claims.get(account_id) {
             Some(a) => a,
             _ => panic!("{} has no claims", account_id),
         }
@@ -55,7 +55,7 @@ impl GradualReleaseContract {
         );
         let mut total_distributed = 0;
         for item in claims_array {
-            let account_id = &AccountId::new_unchecked(item.0);
+            let account_id = &item.0;
             let claims = &mut self
                 .available_claims
                 .get(account_id)
@@ -105,7 +105,7 @@ impl GradualReleaseContract {
     // before transfer
     pub(crate) fn remove_claimable_amount(
         &mut self,
-        account_id: &AccountId,
+        account_id: &String,
         airdrop_index: u16,
     ) -> u128 {
         let user_claims = &mut self.internal_get_claims_or_panic(account_id);
@@ -148,7 +148,7 @@ impl GradualReleaseContract {
     // rollback of the above fn
     pub(crate) fn re_add_claimable_amount(
         &mut self,
-        account_id: &AccountId,
+        account_id: &String,
         airdrop_index: u16,
         amount: u128,
     ) {
@@ -180,21 +180,21 @@ impl GradualReleaseContract {
 
     }
 
-    pub(crate) fn internal_claim(&mut self, airdrop_index: u16, account_id: &AccountId) -> Promise {
+    pub(crate) fn internal_claim(&mut self, airdrop_index: u16, account_id: &String) -> Promise {
         let amount = self.remove_claimable_amount(&account_id, airdrop_index);
         let airdrop = &self.airdrops[airdrop_index as usize];
         ext_ft_core::ext(airdrop.token_contract.clone())
             .with_static_gas(GAS_FOR_FT_TRANSFER)
             .with_attached_deposit(1)
             .ft_transfer(
-                account_id.clone(),
+                AccountId::new_unchecked(account_id.clone()),
                 U128::from(amount),
                 Some(airdrop.title.clone()), // Memo
             )
             .then(
                 ext_self::ext(env::current_account_id())
                     .with_static_gas(GAS_FOR_AFTER_TRANSFER)
-                    .after_transfer_token(account_id, airdrop_index, U128::from(amount)),
+                    .after_transfer_token(&AccountId::new_unchecked(account_id.clone()), airdrop_index, U128::from(amount)),
             )
     }
 
@@ -222,7 +222,7 @@ impl GradualReleaseContract {
                     account_id,
                 );
                 // ROLLBACK
-                self.re_add_claimable_amount(account_id, airdrop_index, amount);
+                self.re_add_claimable_amount(&account_id.to_string(), airdrop_index, amount);
             }
         };
     }

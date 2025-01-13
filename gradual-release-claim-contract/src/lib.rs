@@ -47,7 +47,7 @@ pub struct GradualReleaseContract {
     // period is the same for everyone
     pub airdrops: Vec<airdrop::Airdrop>,
 
-    pub available_claims: UnorderedMap<AccountId, Vec<UserClaimInfo>>, // claimable tokens per user
+    pub available_claims: UnorderedMap<String, Vec<UserClaimInfo>>, // claimable tokens per user
     pub total_in_claims_per_token: UnorderedMap<Token, u128>, // currently unclaimed -- increase on add_claims, decrease on claim
 }
 
@@ -219,6 +219,12 @@ impl GradualReleaseContract {
         self.airdrops[airdrop_index as usize].change_status(airdrop::status_code::DISABLED);
     }
 
+    // change airdrop title
+    pub fn alter_airdrop_title(&mut self, airdrop_index: u16, new_title: String) {
+        self.assert_operator();
+        self.airdrops[airdrop_index as usize].title = new_title;
+    }
+
     // ------------------------
     // change airdrop schedule
     // ------------------------
@@ -243,7 +249,7 @@ impl GradualReleaseContract {
     // user claims tokens
     // ------------------------------------
     pub fn claim(&mut self, airdrop_index: u16) -> Promise {
-        self.internal_claim(airdrop_index, &env::predecessor_account_id())
+        self.internal_claim(airdrop_index, &env::predecessor_account_id().to_string())
     }
 
     // ------------------------------------
@@ -251,16 +257,26 @@ impl GradualReleaseContract {
     // ------------------------------------
     pub fn remove_used_claims(&mut self, accounts: Vec<AccountId>) {
         for account_id in accounts {
-            let user_claims_maybe = &mut self.available_claims.get(&account_id);
+            let user_claims_maybe = &mut self.available_claims.get(&account_id.to_string());
             if let Some(user_claims) = user_claims_maybe {
                 user_claims.retain(|claim| claim.assigned_tokens > claim.claimed_tokens);
                 // save
                 if user_claims.is_empty() {
-                    self.available_claims.remove(&account_id);
+                    self.available_claims.remove(&account_id.to_string());
                 } else {
-                    self.available_claims.insert(&account_id, &user_claims);
+                    self.available_claims.insert(&account_id.to_string(), &user_claims);
                 }
             }
+        }
+    }
+
+    pub fn move_claim_to_delegate(&mut self, external_account: String, delegate_account: AccountId) {
+        self.assert_only_owner();
+        assert!(external_account.ends_with(".evmp.near")||external_account.ends_with(".evmp.testnet"), "ERR: external_account must end with .evmp.near");
+        // move the claims from the external account to the delegate account
+        let external_account_id = AccountId::new_unchecked(external_account);
+        if let Some(user_claims) = self.available_claims.remove(&external_account_id.to_string()) {
+            self.available_claims.insert(&delegate_account.to_string(), &user_claims);
         }
     }
 }

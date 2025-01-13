@@ -74,7 +74,7 @@ pub struct ClaimInfoJSON {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(crate = "near_sdk::serde")]
 pub struct UserClaimsJSON {
-    pub account_id: AccountId,
+    pub account_id: String,
     pub claims: Vec<ClaimInfoJSON>,
 }
 
@@ -104,17 +104,20 @@ impl GradualReleaseContract {
     }
 
     pub fn get_airdrops(&self) -> Vec<AirdropJSON> {
-        self.internal_get_airdrops(false)
+        self.internal_get_airdrops(airdrop::status_code::ENABLED)
     }
-    pub fn get_airdrops_including_not_enabled(&self) -> Vec<AirdropJSON> {
-        self.internal_get_airdrops(true)
+    pub fn get_airdrops_by_status(&self, status_code: airdrop::StatusCode) -> Vec<AirdropJSON> {
+        self.internal_get_airdrops(status_code)
     }
 
-    pub(crate) fn internal_get_airdrops(&self, include_disabled: bool) -> Vec<AirdropJSON> {
+    pub(crate) fn internal_get_airdrops(
+        &self,
+        status_code: airdrop::StatusCode,
+    ) -> Vec<AirdropJSON> {
         self.airdrops
             .iter()
             .enumerate()
-            .filter(|(_, a)| include_disabled || a.is_enabled())
+            .filter(|(_, a)| a.status_code == status_code)
             .map(|(index, a)| AirdropJSON {
                 airdrop_index: index as u16,
                 enabled: a.is_enabled(),
@@ -132,12 +135,12 @@ impl GradualReleaseContract {
     }
 
     // get all information for a single voter: voter + locking-positions + voting-positions
-    pub fn get_user_claims(&self, account_id: &AccountId) -> Vec<ClaimInfoJSON> {
+    pub fn get_user_claims(&self, account_id: String) -> Vec<ClaimInfoJSON> {
         self.claims_to_json(self.internal_get_claims(&account_id).into_iter(), false)
     }
 
     // get all information for a single voter: voter + locking-positions + voting-positions
-    pub fn get_user_claims_including_inactive(&self, account_id: &AccountId) -> Vec<ClaimInfoJSON> {
+    pub fn get_user_claims_including_inactive(&self, account_id: String) -> Vec<ClaimInfoJSON> {
         self.claims_to_json(self.internal_get_claims(&account_id).into_iter(), true)
     }
 
@@ -151,9 +154,9 @@ impl GradualReleaseContract {
         let mut results = Vec::<UserClaimsJSON>::new();
         for index in start..std::cmp::min(start + limit, voters_len) {
             let account_id = keys.get(index).unwrap();
-            let claims = self.available_claims.get(&account_id).unwrap();
+            let claims = self.available_claims.get(&account_id.clone()).unwrap();
             results.push(UserClaimsJSON {
-                account_id: account_id.clone(),
+                account_id: account_id,
                 claims: self.claims_to_json(claims.into_iter(), true),
             });
         }
