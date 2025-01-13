@@ -2,6 +2,15 @@
 __dir=$(dirname "$0")
 . $__dir/0-testnet-set-vars.sh
 
+# args to init contract
+ARGS_INIT=$(cat <<EOA
+{
+"owner_id":"$OWNER_ID",
+"operator_id":"$OPERATOR_ID"
+}
+EOA
+)
+
 echo DEPLOYING $NEAR_ENV $CONTRACT_ADDRESS $CONTRACT_WASM
 set -ex
 NEAR_ENV=testnet near deploy $CONTRACT_ADDRESS $CONTRACT_WASM \

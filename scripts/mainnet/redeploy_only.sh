@@ -1,6 +1,6 @@
 #!/bin/bash
 __dir=$(dirname "$0")
-. $__dir/mainnet-set-vars.sh
+. $__dir/0-mainnet-set-vars.sh
 
 echo meta-vote-contract: $CONTRACT_ADDRESS
 ls -l $CONTRACT_WASM

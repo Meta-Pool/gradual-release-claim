@@ -2,15 +2,15 @@
 __dir=$(dirname "$0")
 . $__dir/0-testnet-set-vars.sh
 
-REQUIRED_ARGS=3
+REQUIRED_ARGS=4
 if [ $# -ne $REQUIRED_ARGS ]; then
-  echo "Error: usage register-airdrop <airdrop-index> <token-account> <transfer-amount>"
+  echo "Error: usage register-airdrop <airdrop-index> <grant-round-number> <token-account> <transfer-amount>"
   exit 1
 fi
-
 AIRDROP_INDEX=$1
-TOKEN_ADDRESS=$2
-TRANSFER_AMOUNT=$3
+ROUND_NUMBER=$2
+TOKEN_ADDRESS=$3
+TRANSFER_AMOUNT=$4
 
 near view $TOKEN_ADDRESS ft_metadata >temp.txt
 cat temp.txt
@@ -29,7 +29,7 @@ end_timestamp_ms=$(($current_timestamp_ms + 27*60*60*1000))
 set -ex
 REGISTER_ARGS=$(cat <<EOA
 {
-"title":"Airdrop of $SYMBOL tokens",
+"title":"Grants #$ROUND_NUMBER - $SYMBOL Airdrop for voters",
 "token_contract":"$TOKEN_ADDRESS",
 "start_timestamp_ms":"$current_timestamp_ms",
 "end_timestamp_ms":"$end_timestamp_ms"

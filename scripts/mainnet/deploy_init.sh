@@ -2,6 +2,15 @@
 __dir=$(dirname "$0")
 . $__dir/mainnet-set-vars.sh
 
+# args to init contract
+ARGS_INIT=$(cat <<EOA
+{
+"owner_id":"$OWNER_ID",
+"operator_id":"$OPERATOR_ID"
+}
+EOA
+)
+
 echo DEPLOYING $NEAR_ENV META VOTE
 set -ex
 NEAR_ENV=mainnet near deploy $CONTRACT_ADDRESS $CONTRACT_WASM \
