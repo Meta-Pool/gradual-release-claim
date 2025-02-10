@@ -163,14 +163,14 @@ impl GradualReleaseContract {
         results
     }
 
-    pub(crate) fn claims_to_json<I>(&self, iter: I, include_inactive: bool) -> Vec<ClaimInfoJSON>
+    pub(crate) fn claims_to_json<I>(&self, iter: I, include_all: bool) -> Vec<ClaimInfoJSON>
     where
         I: Iterator<Item = UserClaimInfo>,
     {
         let mut result = Vec::new();
         for claim in iter {
             let airdrop = &self.airdrops[claim.airdrop_index as usize];
-            if airdrop.is_enabled() && (include_inactive || claim.is_active()) {
+            if include_all || (airdrop.is_enabled() && claim.is_active()) {
                 result.push(ClaimInfoJSON {
                     is_active: claim.is_active(),
                     airdrop_index: claim.airdrop_index,

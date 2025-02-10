@@ -2,7 +2,7 @@
 __dir=$(dirname "$0")
 . $__dir/0-mainnet-set-vars.sh
 
-echo meta-vote-contract: $CONTRACT_ADDRESS
+echo CONTRACT_ADDRESS: $CONTRACT_ADDRESS
 ls -l $CONTRACT_WASM
 
 # Redeploy Contract

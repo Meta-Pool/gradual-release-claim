@@ -10,21 +10,20 @@ __dir=$(dirname "$0")
 # end_timestamp_ms=$(($current_timestamp_ms + 4*24*60*60*1000))
 
 # convert a iso date and time to unix timestamp in milliseconds
-start_timestamp_ms=$(date -d "2024-12-30T15:00:00Z" +%s%3N)
-end_timestamp_ms=$(date -d "2025-01-03T15:00:00Z" +%s%3N)
+start_timestamp_ms=$(date -d "2025-02-10T15:00:00Z" +%s%3N)
+end_timestamp_ms=$(date -d "2025-02-14T15:00:00Z" +%s%3N)
 echo $start_timestamp_ms to $end_timestamp_ms
 
 # check if the required arguments are passed
-REQUIRED_ARGS=3
+REQUIRED_ARGS=2
 if [ $# -ne $REQUIRED_ARGS ]; then
-  echo "Error: usage register-airdrop <airdrop-index> <grant-round-number> <token-account>"
+  echo "Error: usage register-airdrop <grant-round-number> <token-account>"
   exit 1
 fi
-AIRDROP_INDEX=$1
-ROUND_NUMBER=$2
-TOKEN_ADDRESS=$3
-TRANSFER_AMOUNT=$4
+ROUND_NUMBER=$1
+TOKEN_ADDRESS=$2
 
+# obtain the token symbol and decimals
 near view $TOKEN_ADDRESS ft_metadata >temp.txt
 cat temp.txt
 SYMBOL=$(cat temp.txt | grep -oP 'symbol:.*'| cut -d':' -f2 | tr -d "," | xargs)

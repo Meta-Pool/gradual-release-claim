@@ -12,8 +12,8 @@ set +ex
 echo =========================================================
 echo RUST version:
 rustc --version
-echo "WARN: because we're using near-sdk 4.0.0, we need to use rustc 1.81.0"
-echo "WARN: If rustc version is 1.82 or 1.83 after deploy in the blockchain"
+echo "WARN: CHECK Rust version. We NEED to use rustc 1.81.0 because we're using near-sdk 4.0.0,"
+echo "WARN: With near-sdk 4.0.0, If rustc version is 1.82 or 1.83 after deploying in the blockchain"
 echo "WARN: you will get Deserialization ERROR: wasm execution failed with error:"
 echo "WARN: CompilationError(PrepareError(Deserialization))"
 echo "========================================================="

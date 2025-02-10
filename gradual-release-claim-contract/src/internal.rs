@@ -50,7 +50,7 @@ impl GradualReleaseContract {
         let airdrop = &mut self.airdrops[airdrop_index as usize];
         assert!(
             airdrop.status_code == airdrop::status_code::DISABLED,
-            "Airdrop {} is nor disabled. Can not add more claims",
+            "You can only add claims to Airdrop {} if status code is DISABLED",
             airdrop_index
         );
         let mut total_distributed = 0;
